@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Deck {
-    private final Map<String, String> cards;
+    protected final Map<String, String> cards;
 
     public Deck() {
         cards = new HashMap<>();
@@ -22,7 +22,7 @@ public class Deck {
         cards.put(term, definition);
     }
 
-    private String getTermByDefinition(String definition) {
+    protected String getTermByDefinition(String definition) {
         for (Map.Entry<String, String> entry : cards.entrySet()) {
             if (entry.getValue().equals(definition)) {
                 return entry.getKey();
@@ -32,10 +32,10 @@ public class Deck {
     }
     /**
      * Check if definition already present in values of cards map.
-     * @param definition
-     * @return
+     * @param definition definition to check
+     * @return term for the given definition
      */
-    private boolean isDefinitionPresent(String definition) {
+    protected boolean isDefinitionPresent(String definition) {
         for (String value : cards.values()) {
             if (value.equals(definition)) {
                 return true;
@@ -44,5 +44,7 @@ public class Deck {
         return false;
 
     }
+
+
 
 }
