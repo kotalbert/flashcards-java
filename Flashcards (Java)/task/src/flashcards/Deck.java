@@ -1,5 +1,7 @@
 package flashcards;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,8 +32,10 @@ public class Deck {
         }
         return null;
     }
+
     /**
      * Check if definition already present in values of cards map.
+     *
      * @param definition definition to check
      * @return term for the given definition
      */
@@ -46,5 +50,35 @@ public class Deck {
     }
 
 
+    public int importFromFile(String importFileName) {
+        try {
+            Path path = Path.of(importFileName);
+            String[] lines = java.nio.file.Files.readAllLines(path).toArray(new String[0]);
+            for (String line : lines) {
+                String[] parts = line.split(":");
+                String term = parts[0];
+                String definition = parts[1];
+                cards.put(term, definition);
+            }
+            return lines.length;
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
 
+
+    }
+
+    public int exportToFile(String exportFileName) {
+        try {
+            Path path = Path.of(exportFileName);
+            StringBuilder sb = new StringBuilder();
+            for (Map.Entry<String, String> entry : cards.entrySet()) {
+                sb.append(entry.getKey()).append(":").append(entry.getValue()).append(System.lineSeparator());
+            }
+            java.nio.file.Files.writeString(path, sb.toString());
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+        return 0;
+    }
 }

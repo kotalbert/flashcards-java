@@ -5,48 +5,94 @@ import java.util.*;
 public class Main {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        System.out.println("Input the number of cards:");
-        int cardsNumber = Integer.parseInt(sc.nextLine());
         Deck deck = new Deck();
 
-        for (int i = 0; i < cardsNumber; i++) {
-            String term, definition;
-            while (true) {
-                System.out.println("The term for card #" + (i + 1) + ":");
-                term = sc.nextLine();
-                if (deck.cards.containsKey(term)) {
-                    System.out.printf("The term \"%s\" already exists. Try again:%n", term);
-                    continue;
-                }
-                break;
-            }
-            while (true) {
-
-                System.out.println("The definition for card #" + (i + 1) + ":");
-                definition = sc.nextLine();
-                try {
-                    // will throw exception if definition already exists
-                    deck.addCard(term, definition);
-                } catch (IllegalArgumentException e) {
-                    System.out.println(e.getMessage());
-                    continue;
-                }
-                break;
+        while (true) {
+            System.out.println("Input the action (add, remove, import, export, ask, exit):");
+            String action = sc.nextLine();
+            switch (action) {
+                case "add":
+                    handleAddAction(sc, deck);
+                    break;
+                case "remove":
+                    handleRemoveAction(sc, deck);
+                    break;
+                case "import":
+                    handleImportAction(sc, deck);
+                    break;
+                case "export":
+                    handleExportAction(sc, deck);
+                    break;
+                    case "ask":
+                        handleAskCommand(sc, deck);
+                        break;
+                case "exit":
+                    System.out.println("Bye bye!");
+                    return;
+                default:
+                    System.out.println("Unknown action. Please try again.");
             }
         }
 
-        for (Map.Entry<String, String> entry : deck.cards.entrySet()) {
-            System.out.printf("Print the definition of \"%s\":%n", entry.getKey());
-            String userDefinition = sc.nextLine();
-            if (userDefinition.equals(entry.getValue())) {
+
+    }
+
+    private static void handleAskCommand(Scanner sc, Deck deck) {
+        System.out.println("How many times to ask?");
+        int timesToAsk = Integer.parseInt(sc.nextLine());
+        List<String> terms = new ArrayList<>(deck.cards.keySet());
+        Random random = new Random();
+        for (int i = 0; i < timesToAsk; i++) {
+            String term = terms.get(random.nextInt(terms.size()));
+            String correctDefinition = deck.cards.get(term);
+            System.out.println("Print the definition of \"" + term + "\":");
+            String userAnswer = sc.nextLine();
+            if (userAnswer.equals(correctDefinition)) {
                 System.out.println("Correct!");
-            } else if (deck.isDefinitionPresent(userDefinition)) {
-                System.out.printf("Wrong. The right answer is \"%s\", but your definition is correct for \"%s\".%n", entry.getValue(), deck.getTermByDefinition(userDefinition));
+            } else if (deck.isDefinitionPresent(userAnswer)) {
+                String existingTerm = deck.getTermByDefinition(userAnswer);
+                System.out.println("Wrong. The right answer is \"" + correctDefinition + "\", but your definition is correct for \"" + existingTerm + "\".");
             } else {
-                System.out.printf("Wrong. The right answer is \"%s\".%n", entry.getValue());
+                System.out.println("Wrong. The right answer is \"" + correctDefinition + "\".");
             }
         }
+    }
 
+    private static void handleExportAction(Scanner sc, Deck deck) {
+        System.out.println("File name:");
+        String exportFileName = sc.nextLine();
+        int exportedCount = deck.exportToFile(exportFileName);
+        System.out.println(exportedCount + " cards have been saved.");
+    }
 
+    private static void handleImportAction(Scanner sc, Deck deck) {
+        System.out.println("File name:");
+        String importFileName = sc.nextLine();
+        int importedCount = deck.importFromFile(importFileName);
+        System.out.println(importedCount + " cards have been loaded.");
+    }
+
+    private static void handleRemoveAction(Scanner sc, Deck deck) {
+        System.out.println("Which card?");
+        String termToRemove = sc.nextLine();
+        if (deck.cards.containsKey(termToRemove)) {
+            deck.cards.remove(termToRemove);
+            System.out.println("The card has been removed.");
+        } else {
+            System.out.println("Can't remove \"" + termToRemove + "\": there is no such card.");
+        }
+    }
+
+    private static void handleAddAction(Scanner sc, Deck deck) {
+        System.out.println("The card:");
+        String term = sc.nextLine();
+        System.out.println("The definition of the card:");
+        String definition = sc.nextLine();
+        try {
+            deck.addCard(term, definition);
+            System.out.println("The pair (\"" + term + "\":\"" + definition + "\") has been added.");
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
     }
 }
