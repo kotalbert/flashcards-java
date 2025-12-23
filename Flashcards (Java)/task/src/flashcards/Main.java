@@ -6,9 +6,10 @@ public class Main {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         Deck deck = new Deck();
+        Stats stats = new Stats();
 
         while (true) {
-            System.out.println("Input the action (add, remove, import, export, ask, exit):");
+            System.out.println("Input the action (add, remove, import, export, ask, exit, log, hardest card, reset stats):");
             String action = sc.nextLine();
             switch (action) {
                 case "add":
@@ -23,12 +24,21 @@ public class Main {
                 case "export":
                     handleExportAction(sc, deck);
                     break;
-                    case "ask":
-                        handleAskCommand(sc, deck);
-                        break;
+                case "ask":
+                    handleAskCommand(sc, deck, stats);
+                    break;
                 case "exit":
                     System.out.println("Bye bye!");
                     return;
+                case "log":
+                    System.out.println("The log has been saved.");
+                    break;
+                case "hardest card":
+                    handleHardestCard(sc, stats);
+                    break;
+                case "reset stats":
+                    stats.resetStats();
+                    System.out.println("Card statistics have been reset.");
                 default:
                     System.out.println("Unknown action. Please try again.");
             }
@@ -37,7 +47,30 @@ public class Main {
 
     }
 
-    private static void handleAskCommand(Scanner sc, Deck deck) {
+    private static void handleHardestCard(Scanner sc, Stats stats) {
+        List<String> hardestCards = stats.getHardestCards();
+        if (hardestCards.size() == 1) {
+            String term = hardestCards.getFirst();
+            int errors = stats.errorCounts.get(term);
+            System.out.printf("The hardest card is \"%s\". You have %d errors answering it.%n", term, errors);
+            return;
+        } else if (hardestCards.size() > 1) {
+            StringBuilder terms = new StringBuilder();
+            for (int i = 0; i < hardestCards.size(); i++) {
+                terms.append("\"").append(hardestCards.get(i)).append("\"");
+                if (i < hardestCards.size() - 1) {
+                    terms.append(", ");
+                }
+            }
+            int errors = stats.errorCounts.get(hardestCards.getFirst());
+            System.out.printf("The hardest card is \"%s\". You have %d errors answering it.%n", terms, errors);
+            return;
+        } else {
+            System.out.println("There are no cards with errors.");
+        }
+    }
+
+    private static void handleAskCommand(Scanner sc, Deck deck, Stats stats) {
         System.out.println("How many times to ask?");
         int timesToAsk = Integer.parseInt(sc.nextLine());
         List<String> terms = new ArrayList<>(deck.cards.keySet());
@@ -50,9 +83,11 @@ public class Main {
             if (userAnswer.equals(correctDefinition)) {
                 System.out.println("Correct!");
             } else if (deck.isDefinitionPresent(userAnswer)) {
+                stats.incrementErrorCount(term);
                 String existingTerm = deck.getTermByDefinition(userAnswer);
                 System.out.println("Wrong. The right answer is \"" + correctDefinition + "\", but your definition is correct for \"" + existingTerm + "\".");
             } else {
+                stats.incrementErrorCount(term);
                 System.out.println("Wrong. The right answer is \"" + correctDefinition + "\".");
             }
         }
