@@ -1,5 +1,7 @@
 package flashcards;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 public class Main {
@@ -7,6 +9,7 @@ public class Main {
         Scanner sc = new Scanner(System.in);
         Deck deck = new Deck();
         Stats stats = new Stats();
+        Logger log = new Logger();
 
         while (true) {
             System.out.println("Input the action (add, remove, import, export, ask, exit, log, hardest card, reset stats):");
@@ -31,6 +34,7 @@ public class Main {
                     System.out.println("Bye bye!");
                     return;
                 case "log":
+                    handleLogAction(sc, log);
                     System.out.println("The log has been saved.");
                     break;
                 case "hardest card":
@@ -45,6 +49,17 @@ public class Main {
         }
 
 
+    }
+
+    private static void handleLogAction(Scanner sc, Logger log) {
+        String logContent = log.getLog();
+        System.out.println("File name:");
+        String logFileName = sc.nextLine();
+        try {
+            Files.writeString(Path.of(logFileName), logContent);
+        } catch (java.io.IOException e) {
+            System.out.println("An error occurred while saving the log.");
+        }
     }
 
     private static void handleHardestCard(Scanner sc, Stats stats) {
