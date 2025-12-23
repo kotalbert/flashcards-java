@@ -14,6 +14,9 @@ public class Logger {
         System.out.println(message);
         log.append(message).append(System.lineSeparator());
     }
+    public void logToFile(String message) {
+        log.append(message).append(System.lineSeparator());
+    }
 
     public String getLog() {
         return log.toString();

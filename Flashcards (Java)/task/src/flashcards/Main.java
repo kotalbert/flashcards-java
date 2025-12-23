@@ -15,7 +15,7 @@ public class Main {
             String msg = "Input the action (add, remove, import, export, ask, exit, log, hardest card, reset stats):";
             logger.log(msg);
             String action = sc.nextLine();
-            logger.log(action);
+            logger.logToFile(action);
             switch (action) {
                 case "add":
                     handleAddAction(sc, deck, logger);
@@ -30,7 +30,7 @@ public class Main {
                     handleExportAction(sc, deck, logger);
                     break;
                 case "ask":
-                    handleAskCommand(sc, deck, stats, logger);
+                    handleAskAction(sc, deck, stats, logger);
                     break;
                 case "exit":
                     logger.log("Bye bye!");
@@ -39,7 +39,7 @@ public class Main {
                     handleLogAction(sc, logger);
                     break;
                 case "hardest card":
-                    handleHardestCard(stats, logger);
+                    handleHardestCardAction(stats, logger);
                     break;
                 case "reset stats":
                     stats.resetStats();
@@ -65,7 +65,7 @@ public class Main {
 
     }
 
-    private static void handleHardestCard(Stats stats, Logger logger) {
+    private static void handleHardestCardAction(Stats stats, Logger logger) {
         List<String> hardestCards = stats.getHardestCards();
         if (hardestCards.size() == 1) {
             String term = hardestCards.getFirst();
@@ -88,7 +88,7 @@ public class Main {
         }
     }
 
-    private static void handleAskCommand(Scanner sc, Deck deck, Stats stats, Logger logger) {
+    private static void handleAskAction(Scanner sc, Deck deck, Stats stats, Logger logger) {
         logger.log("How many times to ask?");
         int timesToAsk = Integer.parseInt(sc.nextLine());
         List<String> terms = new ArrayList<>(deck.cards.keySet());
@@ -138,15 +138,25 @@ public class Main {
     }
 
     private static void handleAddAction(Scanner sc, Deck deck, Logger logger) {
-        logger.log("The card:");
-        String term = sc.nextLine();
-        logger.log("The definition of the card:");
-        String definition = sc.nextLine();
-        try {
-            deck.addCard(term, definition);
-            logger.log("The pair (\"" + term + "\":\"" + definition + "\") has been added.");
-        } catch (IllegalArgumentException e) {
-            logger.log(e.getMessage());
+        while (true) {
+            logger.log("The card:");
+            String term = sc.nextLine();
+            logger.logToFile(term);
+            // check if term already exists
+            if (deck.cards.containsKey(term)) {
+                logger.log("The card \"" + term + "\" already exists.");
+            } else {
+                logger.log("The definition of the card:");
+                String definition = sc.nextLine();
+                logger.logToFile(definition);
+                try {
+                    deck.addCard(term, definition);
+                    logger.log("The pair (\"" + term + "\":\"" + definition + "\") has been added.");
+                    break;
+                } catch (IllegalArgumentException e) {
+                    logger.log(e.getMessage());
+                }
+            }
         }
     }
 }
