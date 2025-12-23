@@ -9,66 +9,69 @@ public class Main {
         Scanner sc = new Scanner(System.in);
         Deck deck = new Deck();
         Stats stats = new Stats();
-        Logger log = new Logger();
+        Logger logger = new Logger();
 
         while (true) {
-            System.out.println("Input the action (add, remove, import, export, ask, exit, log, hardest card, reset stats):");
+            String msg = "Input the action (add, remove, import, export, ask, exit, log, hardest card, reset stats):";
+            logger.log(msg);
             String action = sc.nextLine();
+            logger.log(action);
             switch (action) {
                 case "add":
-                    handleAddAction(sc, deck);
+                    handleAddAction(sc, deck, logger);
                     break;
                 case "remove":
-                    handleRemoveAction(sc, deck);
+                    handleRemoveAction(sc, deck, logger);
                     break;
                 case "import":
-                    handleImportAction(sc, deck);
+                    handleImportAction(sc, deck, logger);
                     break;
                 case "export":
-                    handleExportAction(sc, deck);
+                    handleExportAction(sc, deck, logger);
                     break;
                 case "ask":
-                    handleAskCommand(sc, deck, stats);
+                    handleAskCommand(sc, deck, stats, logger);
                     break;
                 case "exit":
-                    System.out.println("Bye bye!");
+                    logger.log("Bye bye!");
                     return;
                 case "log":
-                    handleLogAction(sc, log);
-                    System.out.println("The log has been saved.");
+                    handleLogAction(sc, logger);
                     break;
                 case "hardest card":
-                    handleHardestCard(sc, stats);
+                    handleHardestCard(stats, logger);
                     break;
                 case "reset stats":
                     stats.resetStats();
-                    System.out.println("Card statistics have been reset.");
+                    logger.log("Card statistics have been reset.");
                 default:
-                    System.out.println("Unknown action. Please try again.");
+                    logger.log("Unknown action. Please try again.");
             }
         }
 
 
     }
 
-    private static void handleLogAction(Scanner sc, Logger log) {
-        String logContent = log.getLog();
+    private static void handleLogAction(Scanner sc, Logger logger) {
+        String logContent = logger.getLog();
         System.out.println("File name:");
         String logFileName = sc.nextLine();
         try {
             Files.writeString(Path.of(logFileName), logContent);
         } catch (java.io.IOException e) {
-            System.out.println("An error occurred while saving the log.");
+            logger.log("An error occurred while saving the log.");
         }
+        logger.log("The log has been saved.");
+
     }
 
-    private static void handleHardestCard(Scanner sc, Stats stats) {
+    private static void handleHardestCard(Stats stats, Logger logger) {
         List<String> hardestCards = stats.getHardestCards();
         if (hardestCards.size() == 1) {
             String term = hardestCards.getFirst();
             int errors = stats.errorCounts.get(term);
-            System.out.printf("The hardest card is \"%s\". You have %d errors answering it.%n", term, errors);
-            return;
+            String msg = "The hardest card is \"%s\". You have %d errors answering it.%n".formatted(term, errors);
+            logger.log(msg);
         } else if (hardestCards.size() > 1) {
             StringBuilder terms = new StringBuilder();
             for (int i = 0; i < hardestCards.size(); i++) {
@@ -78,71 +81,72 @@ public class Main {
                 }
             }
             int errors = stats.errorCounts.get(hardestCards.getFirst());
-            System.out.printf("The hardest card is \"%s\". You have %d errors answering it.%n", terms, errors);
-            return;
+            String msg = "The hardest card is \"%s\". You have %d errors answering it.%n".formatted(terms, errors);
+            logger.log(msg);
         } else {
-            System.out.println("There are no cards with errors.");
+            logger.log("There are no cards with errors.");
         }
     }
 
-    private static void handleAskCommand(Scanner sc, Deck deck, Stats stats) {
-        System.out.println("How many times to ask?");
+    private static void handleAskCommand(Scanner sc, Deck deck, Stats stats, Logger logger) {
+        logger.log("How many times to ask?");
         int timesToAsk = Integer.parseInt(sc.nextLine());
         List<String> terms = new ArrayList<>(deck.cards.keySet());
         Random random = new Random();
         for (int i = 0; i < timesToAsk; i++) {
             String term = terms.get(random.nextInt(terms.size()));
             String correctDefinition = deck.cards.get(term);
-            System.out.println("Print the definition of \"" + term + "\":");
+            logger.log("Print the definition of \"" + term + "\":");
             String userAnswer = sc.nextLine();
             if (userAnswer.equals(correctDefinition)) {
-                System.out.println("Correct!");
+                logger.log("Correct!");
             } else if (deck.isDefinitionPresent(userAnswer)) {
                 stats.incrementErrorCount(term);
                 String existingTerm = deck.getTermByDefinition(userAnswer);
-                System.out.println("Wrong. The right answer is \"" + correctDefinition + "\", but your definition is correct for \"" + existingTerm + "\".");
+                String msg = "Wrong. The right answer is \"" + correctDefinition + "\", but your definition is correct for \"" + existingTerm + "\".";
+                logger.log(msg);
             } else {
                 stats.incrementErrorCount(term);
-                System.out.println("Wrong. The right answer is \"" + correctDefinition + "\".");
+                logger.log("Wrong. The right answer is \"" + correctDefinition + "\".");
             }
         }
     }
 
-    private static void handleExportAction(Scanner sc, Deck deck) {
-        System.out.println("File name:");
+    private static void handleExportAction(Scanner sc, Deck deck, Logger logger) {
+        logger.log("File name:");
         String exportFileName = sc.nextLine();
         int exportedCount = deck.exportToFile(exportFileName);
-        System.out.println(exportedCount + " cards have been saved.");
+        logger.log(exportedCount + " cards have been saved.");
     }
 
-    private static void handleImportAction(Scanner sc, Deck deck) {
-        System.out.println("File name:");
+    private static void handleImportAction(Scanner sc, Deck deck, Logger logger) {
+        logger.log("File name:");
         String importFileName = sc.nextLine();
         int importedCount = deck.importFromFile(importFileName);
-        System.out.println(importedCount + " cards have been loaded.");
+        logger.log(importedCount + " cards have been loaded.");
     }
 
-    private static void handleRemoveAction(Scanner sc, Deck deck) {
-        System.out.println("Which card?");
+    private static void handleRemoveAction(Scanner sc, Deck deck, Logger logger) {
+        logger.log("Which card?");
         String termToRemove = sc.nextLine();
         if (deck.cards.containsKey(termToRemove)) {
             deck.cards.remove(termToRemove);
-            System.out.println("The card has been removed.");
+            logger.log("The card has been removed.");
         } else {
-            System.out.println("Can't remove \"" + termToRemove + "\": there is no such card.");
+            logger.log("Can't remove \"" + termToRemove + "\": there is no such card.");
         }
     }
 
-    private static void handleAddAction(Scanner sc, Deck deck) {
-        System.out.println("The card:");
+    private static void handleAddAction(Scanner sc, Deck deck, Logger logger) {
+        logger.log("The card:");
         String term = sc.nextLine();
-        System.out.println("The definition of the card:");
+        logger.log("The definition of the card:");
         String definition = sc.nextLine();
         try {
             deck.addCard(term, definition);
-            System.out.println("The pair (\"" + term + "\":\"" + definition + "\") has been added.");
+            logger.log("The pair (\"" + term + "\":\"" + definition + "\") has been added.");
         } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage());
+            logger.log(e.getMessage());
         }
     }
 }
